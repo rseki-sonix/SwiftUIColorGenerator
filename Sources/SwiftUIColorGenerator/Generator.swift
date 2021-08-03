@@ -55,6 +55,7 @@ struct Generator: ParsableCommand {
 
             """
             urls.filter { $0.pathExtension == Generator.colorsetExtension }
+                .sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
                 .forEach { url in
                     let name = url.lastPathComponent.replacingOccurrences(of: ".\(Generator.colorsetExtension)", with: "", options: .literal)
                     code += "        static let \(name.firstLowerCased) = Color(\"\(name)\")\n"
