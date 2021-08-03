@@ -20,6 +20,8 @@ struct Generator: ParsableCommand {
     static let xcassetsExtension = "xcassets"
     static let colorsetExtension = "colorset"
 
+    @Flag(help: "Remove \"Color\" suffix. e.g. RedColor -> Red")
+    var removeColorSuffix = false
     @Argument(help: "Path to *.xcassets.")
     var xcassetPath: Path
     @Argument(help: "Path to ColorAssets.swift. (Overwrited)")
@@ -58,7 +60,7 @@ struct Generator: ParsableCommand {
                 .sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
                 .forEach { url in
                     let name = url.lastPathComponent.replacingOccurrences(of: ".\(Generator.colorsetExtension)", with: "", options: .literal)
-                    code += "        static let \(name.firstLowerCased) = Color(\"\(name)\")\n"
+                    code += "        static let \(covertName(name)) = Color(\"\(name)\")\n"
                 }
             code += """
                 }
@@ -70,5 +72,14 @@ struct Generator: ParsableCommand {
             print(error)
             throw XCAssetsError.notDirectory
         }
+    }
+
+    private func covertName(_ name: String) -> String {
+        let splited = name.split(separator: "_").map { String($0).changeFirstCharacterCase(.upperCase) }
+        var joined = splited.joined()
+        if removeColorSuffix {
+            joined = joined.replacingOccurrences(of: "Color$", with: "", options: .regularExpression)
+        }
+        return joined.changeFirstCharacterCase(.lowerCase)
     }
 }
